@@ -1,0 +1,101 @@
+package DoubleLinkedList;
+
+public class UndoRedoManager<T> {
+    private class Node {
+        private T state;
+        private Node prev;
+        private Node next;
+        private Node(T state) {
+            this.state = state;
+        }
+    }
+
+    private Node currentState;
+    private Node redoState; // Pointer for redo
+
+    // Undo operation
+    public T undo() {
+        if (currentState == null) {
+            System.out.println("No state to undo");
+            return null;
+        }
+
+        // Get the previous state
+        Node previousState = currentState.prev;
+        if (previousState == null) {
+            System.out.println("Reached the initial state");
+            return null;
+        } else {
+            // Update the current state to the previous state
+            redoState = currentState; // The current state will be added to redo stack
+            currentState = previousState;
+        }
+        return currentState.state;
+    }
+
+    // Redo operation
+    public T redo() {
+        if (redoState == null) {
+            System.out.println("No state to redo");
+            return null;
+        }
+
+        // Move to the redo state
+        currentState = redoState;
+        redoState = redoState.next; // Move the redo state forward
+        return currentState.state;
+    }
+
+    // Perform an operation (add a new state)
+    public void addState(T newState) {
+        // Create a new node for the new task
+        Node newNode = new Node(newState);
+
+        // Set the links for the new Node
+        newNode.prev = currentState;
+        newNode.next = null;
+
+        // Update the next link for the current state
+        if (currentState != null) {
+            currentState.next = newNode;
+        }
+        // Update the current to the new state
+        currentState = newNode;
+
+        // After adding a new state, clear the redo stack (since the future is now changed)
+        redoState = null;
+    }
+
+    public static void main(String[] args) {
+        UndoRedoManager<String> undoRedoManager = new UndoRedoManager<>();
+        undoRedoManager.addState("State 1");
+        undoRedoManager.addState("State 2");
+        undoRedoManager.addState("State 3");
+        undoRedoManager.addState("State 4");
+        undoRedoManager.addState("State 5");
+        undoRedoManager.addState("State 6");
+        undoRedoManager.addState("State 7");
+
+        System.out.println("Current State: " + undoRedoManager.currentState.state);
+        
+        undoRedoManager.undo();
+        System.out.println("After Undo: " + undoRedoManager.currentState.state);
+        
+        undoRedoManager.undo();
+        System.out.println("After Undo: " + undoRedoManager.currentState.state);
+        
+        undoRedoManager.undo();
+        System.out.println("After Undo: " + undoRedoManager.currentState.state);
+        
+        undoRedoManager.redo();
+        System.out.println("After Redo: " + undoRedoManager.currentState.state);
+        
+        undoRedoManager.redo();
+        System.out.println("After Redo: " + undoRedoManager.currentState.state);
+        
+        undoRedoManager.addState("State 8");
+        System.out.println("After Adding New State: " + undoRedoManager.currentState.state);
+        
+        undoRedoManager.redo(); // No state to redo
+    }
+}
